@@ -1,4 +1,4 @@
-import 'package:example/canvas.dart';
+import 'package:example/editor.dart';
 import 'package:flutter/material.dart';
 
 void main() {
