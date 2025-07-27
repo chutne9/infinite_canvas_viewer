@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas_viewer/infinite_canvas_viewer.dart';
@@ -57,14 +58,14 @@ class _CanvasState extends State<Editor> {
   Widget build(BuildContext context) {
     return InfiniteCanvasViewer(
       controller: _controller,
-      children: items.indexed
-          .map(
-            (indexedItem) => RectTransform(
-              bounds: indexedItem.$2.bounds,
-              angle: indexedItem.$2.angle,
+      children: items
+          .mapIndexed(
+            (index, item) => RectTransform(
+              bounds: item.bounds,
+              angle: item.angle,
               onNewBounds: (bounds, angle) =>
-                  _handleNewBounds(indexedItem.$1, bounds, angle),
-              child: Container(color: Colors.red),
+                  _handleNewBounds(index, bounds, angle),
+              child: Container(color: item.color),
             ),
           )
           .toList(),
