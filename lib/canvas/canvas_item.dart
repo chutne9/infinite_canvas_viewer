@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:infinite_canvas_viewer/canvas_layout.dart';
+import 'package:infinite_canvas_viewer/canvas/canvas_layout.dart';
 
 class CanvasParentData extends ContainerBoxParentData<RenderBox> {
   Offset? position;

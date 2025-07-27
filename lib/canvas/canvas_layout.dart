@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui';
-import 'package:infinite_canvas_viewer/canvas_controller.dart';
-import 'package:infinite_canvas_viewer/canvas_item.dart';
+import 'package:infinite_canvas_viewer/canvas/canvas_controller.dart';
+import 'package:infinite_canvas_viewer/canvas/canvas_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
