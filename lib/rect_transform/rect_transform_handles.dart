@@ -36,10 +36,10 @@ class RectTransformHandles extends StatelessWidget {
   Widget _buildMoveHandle(BuildContext context) {
     return moveable
         ? GestureDetector(
-          onPanUpdate: (details) {
-            onMove?.call(details.delta);
-          },
-        )
+            onPanUpdate: (details) {
+              onMove?.call(details.delta);
+            },
+          )
         : SizedBox.shrink();
   }
 
