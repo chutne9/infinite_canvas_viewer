@@ -115,7 +115,7 @@ class CanvasLayoutRenderBox extends RenderBox
   @override
   void paint(PaintingContext context, Offset offset) {
     context.canvas.save();
-    context.canvas.clipRect(offset & size);
+    context.canvas.translate(offset.dx, offset.dy);
     _gridPainter?.paint(context.canvas, size);
     context.canvas.restore();
 

@@ -41,6 +41,7 @@ class LineGridPainter extends GridPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final scale = transform.getMaxScaleOnAxis();
+    final visibleRect = visibleWorldRect;
 
     const double majorGridStep = 200.0;
     const double minorGridStep = 50.0;
@@ -48,55 +49,84 @@ class LineGridPainter extends GridPainter {
     canvas.save();
     canvas.transform(transform.storage);
 
-    _drawGridLines(canvas, visibleWorldRect, majorGridStep, _majorGridPaint);
+    // Major grid lines
+    final double startXMajor =
+        (visibleRect.left / majorGridStep).floorToDouble() * majorGridStep;
+    final double startYMajor =
+        (visibleRect.top / majorGridStep).floorToDouble() * majorGridStep;
 
+    int majorLineCount = 0;
+    for (double x = startXMajor; x < visibleRect.right; x += majorGridStep) {
+      majorLineCount++;
+    }
+    for (double y = startYMajor; y < visibleRect.bottom; y += majorGridStep) {
+      majorLineCount++;
+    }
+
+    if (majorLineCount > 0) {
+      final majorPoints = Float32List(majorLineCount * 4);
+      int index = 0;
+      for (double x = startXMajor; x < visibleRect.right; x += majorGridStep) {
+        majorPoints[index++] = x;
+        majorPoints[index++] = visibleRect.top;
+        majorPoints[index++] = x;
+        majorPoints[index++] = visibleRect.bottom;
+      }
+      for (double y = startYMajor; y < visibleRect.bottom; y += majorGridStep) {
+        majorPoints[index++] = visibleRect.left;
+        majorPoints[index++] = y;
+        majorPoints[index++] = visibleRect.right;
+        majorPoints[index++] = y;
+      }
+      canvas.drawRawPoints(PointMode.lines, majorPoints, _majorGridPaint);
+    }
+
+    // Minor grid lines
     final double minorStepOnScreen = minorGridStep * scale;
     if (minorStepOnScreen > 5.0) {
-      _drawGridLines(
-        canvas,
-        visibleWorldRect,
-        minorGridStep,
-        _minorGridPaint,
-        skipEvery: (majorGridStep / minorGridStep).round(),
-      );
+      final double startXMinor =
+          (visibleRect.left / minorGridStep).floorToDouble() * minorGridStep;
+      final double startYMinor =
+          (visibleRect.top / minorGridStep).floorToDouble() * minorGridStep;
+
+      int minorLineCount = 0;
+      for (double x = startXMinor; x < visibleRect.right; x += minorGridStep) {
+        if ((x % majorGridStep).abs() > 0.01) minorLineCount++;
+      }
+      for (double y = startYMinor; y < visibleRect.bottom; y += minorGridStep) {
+        if ((y % majorGridStep).abs() > 0.01) minorLineCount++;
+      }
+
+      if (minorLineCount > 0) {
+        final minorPoints = Float32List(minorLineCount * 4);
+        int index = 0;
+        for (
+          double x = startXMinor;
+          x < visibleRect.right;
+          x += minorGridStep
+        ) {
+          if ((x % majorGridStep).abs() < 0.01) continue;
+          minorPoints[index++] = x;
+          minorPoints[index++] = visibleRect.top;
+          minorPoints[index++] = x;
+          minorPoints[index++] = visibleRect.bottom;
+        }
+        for (
+          double y = startYMinor;
+          y < visibleRect.bottom;
+          y += minorGridStep
+        ) {
+          if ((y % majorGridStep).abs() < 0.01) continue;
+          minorPoints[index++] = visibleRect.left;
+          minorPoints[index++] = y;
+          minorPoints[index++] = visibleRect.right;
+          minorPoints[index++] = y;
+        }
+        canvas.drawRawPoints(PointMode.lines, minorPoints, _minorGridPaint);
+      }
     }
 
     canvas.restore();
-  }
-
-  void _drawGridLines(
-    Canvas canvas,
-    Rect rect,
-    double step,
-    Paint paint, {
-    int skipEvery = 0,
-  }) {
-    final double startX = (rect.left / step).floorToDouble() * step;
-    final double startY = (rect.top / step).floorToDouble() * step;
-
-    final List<double> points = [];
-    int lineNum = 0;
-
-    for (double x = startX; x < rect.right; x += step) {
-      lineNum++;
-      if (skipEvery > 0 && lineNum % skipEvery == 1) continue;
-      points.addAll([x, rect.top, x, rect.bottom]);
-    }
-
-    lineNum = 0;
-    for (double y = startY; y < rect.bottom; y += step) {
-      lineNum++;
-      if (skipEvery > 0 && lineNum % skipEvery == 1) continue;
-      points.addAll([rect.left, y, rect.right, y]);
-    }
-
-    if (points.isNotEmpty) {
-      canvas.drawRawPoints(
-        PointMode.lines,
-        Float32List.fromList(points),
-        paint,
-      );
-    }
   }
 
   @override
