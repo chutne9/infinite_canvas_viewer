@@ -22,7 +22,6 @@ abstract class GridPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant GridPainter oldDelegate) {
-    // Repaint if the view transform or visible area changes.
     return oldDelegate.transform != transform ||
         oldDelegate.visibleWorldRect != visibleWorldRect;
   }
