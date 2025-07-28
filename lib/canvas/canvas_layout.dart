@@ -114,9 +114,6 @@ class CanvasLayoutRenderBox extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    final backgroundPaint = Paint()..color = const Color(0xFFFDFDFD);
-    context.canvas.drawRect(offset & size, backgroundPaint);
-
     context.canvas.save();
     context.canvas.clipRect(offset & size);
     _gridPainter?.paint(context.canvas, size);

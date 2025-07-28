@@ -10,11 +10,13 @@ class InfiniteCanvasViewer extends StatefulWidget {
     required this.controller,
     required this.children,
     this.gridType = GridType.none,
+    this.backgroundColor = const Color(0xFFFDFDFD),
   });
 
   final List<Widget> children;
   final CanvasController controller;
   final GridType gridType;
+  final Color backgroundColor;
 
   @override
   State<InfiniteCanvasViewer> createState() => _InfiniteCanvasViewerState();
@@ -55,17 +57,20 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer> {
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
-      onPointerSignal: _handlePointerSignal,
-      child: GestureDetector(
-        onScaleStart: _handleScaleStart,
-        onScaleUpdate: _handleScaleUpdate,
-        behavior: HitTestBehavior.opaque,
-        child: ClipRect(
-          child: CanvasLayoutWidget(
-            controller: widget.controller,
-            gridType: widget.gridType,
-            children: widget.children,
+    return Container(
+      color: widget.backgroundColor,
+      child: Listener(
+        onPointerSignal: _handlePointerSignal,
+        child: GestureDetector(
+          onScaleStart: _handleScaleStart,
+          onScaleUpdate: _handleScaleUpdate,
+          behavior: HitTestBehavior.opaque,
+          child: ClipRect(
+            child: CanvasLayoutWidget(
+              controller: widget.controller,
+              gridType: widget.gridType,
+              children: widget.children,
+            ),
           ),
         ),
       ),
