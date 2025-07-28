@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:infinite_canvas_viewer/canvas/canvas_controller.dart';
+import 'package:infinite_canvas_viewer/canvas/canvas_grid_painter.dart';
 import 'package:infinite_canvas_viewer/canvas/canvas_layout.dart';
 
 class InfiniteCanvasViewer extends StatefulWidget {
@@ -8,10 +9,12 @@ class InfiniteCanvasViewer extends StatefulWidget {
     super.key,
     required this.controller,
     required this.children,
+    this.gridType = GridType.none,
   });
 
   final List<Widget> children;
   final CanvasController controller;
+  final GridType gridType;
 
   @override
   State<InfiniteCanvasViewer> createState() => _InfiniteCanvasViewerState();
@@ -61,6 +64,7 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer> {
         child: ClipRect(
           child: CanvasLayoutWidget(
             controller: widget.controller,
+            gridType: widget.gridType,
             children: widget.children,
           ),
         ),

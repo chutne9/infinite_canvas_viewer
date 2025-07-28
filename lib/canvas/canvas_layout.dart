@@ -6,43 +6,56 @@ import 'package:flutter/rendering.dart';
 
 class CanvasLayoutWidget extends MultiChildRenderObjectWidget {
   final CanvasController controller;
+  final GridType gridType;
 
   const CanvasLayoutWidget({
     super.key,
     required this.controller,
     required super.children,
+    this.gridType = GridType.none,
   });
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      CanvasLayoutRenderBox(controller: controller);
+      CanvasLayoutRenderBox(controller: controller, gridType: gridType);
 
   @override
   void updateRenderObject(
     BuildContext context,
     CanvasLayoutRenderBox renderObject,
-  ) => renderObject.controller = controller;
+  ) {
+    renderObject.controller = controller;
+    renderObject.gridType = gridType;
+  }
 }
 
 class CanvasLayoutRenderBox extends RenderBox
     with ContainerRenderObjectMixin<RenderBox, CanvasParentData> {
-  CanvasLayoutRenderBox({required CanvasController controller})
-    : _controller = controller {
+  CanvasLayoutRenderBox({
+    required CanvasController controller,
+    required GridType gridType,
+  }) : _controller = controller,
+       _gridType = gridType {
     _controller.addListener(markNeedsLayout);
   }
 
-  CanvasController _controller;
-
+  late Rect _visibleWorldRect;
+  BaseGridPainter? _gridPainter;
   Matrix4 get _transform => _controller.transform;
 
-  late Rect _visibleWorldRect;
-  late GridPainter _gridPainter;
-
+  CanvasController _controller;
   set controller(CanvasController newController) {
     if (_controller == newController) return;
     _controller.removeListener(markNeedsLayout);
     _controller = newController;
     _controller.addListener(markNeedsLayout);
+    markNeedsLayout();
+  }
+
+  GridType _gridType;
+  set gridType(GridType gridType) {
+    if (_gridType == gridType) return;
+    _gridType = gridType;
     markNeedsLayout();
   }
 
@@ -63,10 +76,7 @@ class CanvasLayoutRenderBox extends RenderBox
       Offset.zero & size,
     );
 
-    _gridPainter = GridPainter(
-      transform: _transform,
-      visibleWorldRect: _visibleWorldRect,
-    );
+    _gridPainter = createGridPainter(_controller.transform, _visibleWorldRect);
 
     RenderBox? child = firstChild;
     while (child != null) {
@@ -109,9 +119,7 @@ class CanvasLayoutRenderBox extends RenderBox
 
     context.canvas.save();
     context.canvas.clipRect(offset & size);
-
-    _gridPainter.paint(context.canvas, size);
-
+    _gridPainter?.paint(context.canvas, size);
     context.canvas.restore();
 
     RenderBox? child = firstChild;
@@ -157,5 +165,16 @@ class CanvasLayoutRenderBox extends RenderBox
   void detach() {
     _controller.removeListener(markNeedsLayout);
     super.detach();
+  }
+
+  BaseGridPainter? createGridPainter(Matrix4 transform, Rect rect) {
+    switch (_gridType) {
+      case GridType.line:
+        return LineGridPainter(transform: transform, visibleWorldRect: rect);
+      case GridType.dot:
+        return DotGridPainter(transform: transform, visibleWorldRect: rect);
+      case GridType.none:
+        return null;
+    }
   }
 }
