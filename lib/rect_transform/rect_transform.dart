@@ -13,14 +13,18 @@ class RectTransform extends StatefulWidget {
     this.scale,
     this.worldScale = 1,
     this.baseSize,
-    this.enabled = true,
     this.strokeSize = 0.8,
     this.strokeHandleSize = 4,
     this.cornerSizerSize = 8,
     this.rotatorSize = 16,
-    this.moveable = true,
+    this.canMove = true,
+    this.canRotate = true,
+    this.canResize = true,
     this.onNewTransform,
     this.onNewBounds,
+    this.onTransformEnd,
+    this.onTapInside,
+    this.onTapOutside,
   }) : assert(
          (bounds != null) ||
              (position != null && scale != null && baseSize != null),
@@ -49,14 +53,18 @@ class RectTransform extends StatefulWidget {
 
   // Other properties
   final double worldScale;
-  final bool enabled;
   final double strokeSize;
   final double strokeHandleSize;
   final double cornerSizerSize;
   final double rotatorSize;
-  final bool moveable;
+  final bool canMove;
+  final bool canRotate;
+  final bool canResize;
   final Function(Offset, double, Offset)? onNewTransform;
   final Function(Rect, double)? onNewBounds;
+  final VoidCallback? onTransformEnd;
+  final Function(PointerDownEvent)? onTapInside;
+  final Function(PointerDownEvent)? onTapOutside;
 
   @override
   State<RectTransform> createState() => _RectTransformState();
@@ -137,6 +145,10 @@ class _RectTransformState extends State<RectTransform> {
     _controller.move(delta / widget.worldScale);
   }
 
+  void _handleMoveEnd() {
+    widget.onTransformEnd?.call();
+  }
+
   void _onRotateStart(DragStartDetails details) {
     _center = _getCenter();
     _lastDragVector = details.globalPosition - _center!;
@@ -152,13 +164,19 @@ class _RectTransformState extends State<RectTransform> {
     _lastDragVector = currentDragVector;
   }
 
+  void _handleRotateEnd() {
+    _center = null;
+    _lastDragVector = null;
+    widget.onTransformEnd?.call();
+  }
+
   void _resize(Offset delta) {
     _controller.resize(delta / widget.worldScale);
   }
 
-  void _onRotateEnd() {
-    _center = null;
-    _lastDragVector = null;
+  void _handleResizeEnd() {
+    _controller.endResize();
+    widget.onTransformEnd?.call();
   }
 
   @override
@@ -176,41 +194,47 @@ class _RectTransformState extends State<RectTransform> {
         position.dx * widget.worldScale - kPadding,
         position.dy * widget.worldScale - kPadding,
       ),
-      child: Transform.rotate(
-        angle: angle,
-        child: SizedBox(
-          width: screenWidth,
-          height: screenHeight,
-          child: Stack(
-            clipBehavior: Clip.none,
-            key: stackKey,
-            children: [
-              Positioned(
-                left: kPadding,
-                top: kPadding,
-                right: kPadding,
-                bottom: kPadding,
-                child: widget.child,
-              ),
-              if (widget.enabled)
+      child: TapRegion(
+        onTapInside: (event) => widget.onTapInside?.call(event),
+        onTapOutside: (event) => widget.onTapOutside?.call(event),
+        child: Transform.rotate(
+          angle: angle,
+          child: SizedBox(
+            width: screenWidth,
+            height: screenHeight,
+            child: Stack(
+              clipBehavior: Clip.none,
+              key: stackKey,
+              children: [
+                Positioned(
+                  left: kPadding,
+                  top: kPadding,
+                  right: kPadding,
+                  bottom: kPadding,
+                  child: widget.child,
+                ),
                 Positioned.fill(
                   child: RectTransformHandles(
-                    moveable: widget.moveable,
+                    canMove: widget.canMove,
+                    canRotate: widget.canRotate,
+                    canResize: widget.canResize,
                     rotatorSize: widget.rotatorSize,
                     cornerSizerSize: widget.cornerSizerSize,
                     strokeHandleSize: widget.strokeHandleSize,
                     strokeSize: widget.strokeSize,
                     padding: kPadding,
                     onMove: _move,
+                    onMoveEnd: _handleMoveEnd,
                     onResizeStart: _controller.startResize,
                     onResize: _resize,
-                    onResizeEnd: _controller.endResize,
+                    onResizeEnd: _handleResizeEnd,
                     onRotateStart: _onRotateStart,
                     onRotate: _onRotateUpdate,
-                    onRotateEnd: _onRotateEnd,
+                    onRotateEnd: _handleRotateEnd,
                   ),
                 ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

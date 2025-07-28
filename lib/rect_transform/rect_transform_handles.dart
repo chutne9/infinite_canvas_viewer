@@ -4,13 +4,16 @@ import 'package:infinite_canvas_viewer/rect_transform/sizer.dart';
 class RectTransformHandles extends StatelessWidget {
   const RectTransformHandles({
     super.key,
-    required this.moveable,
+    required this.canMove,
+    required this.canRotate,
+    required this.canResize,
     required this.rotatorSize,
     required this.cornerSizerSize,
     required this.strokeHandleSize,
     required this.strokeSize,
     required this.padding,
     this.onMove,
+    this.onMoveEnd,
     this.onResizeStart,
     this.onResize,
     this.onResizeEnd,
@@ -19,13 +22,16 @@ class RectTransformHandles extends StatelessWidget {
     this.onRotateEnd,
   });
 
-  final bool moveable;
+  final bool canMove;
+  final bool canRotate;
+  final bool canResize;
   final double rotatorSize;
   final double cornerSizerSize;
   final double strokeHandleSize;
   final double strokeSize;
   final double padding;
   final Function(Offset)? onMove;
+  final VoidCallback? onMoveEnd;
   final Function(Sizer)? onResizeStart;
   final Function(Offset)? onResize;
   final VoidCallback? onResizeEnd;
@@ -34,16 +40,23 @@ class RectTransformHandles extends StatelessWidget {
   final VoidCallback? onRotateEnd;
 
   Widget _buildMoveHandle(BuildContext context) {
-    return moveable
+    return canMove
         ? GestureDetector(
             onPanUpdate: (details) {
               onMove?.call(details.delta);
+            },
+            onPanEnd: (details) {
+              onMoveEnd?.call();
             },
           )
         : SizedBox.shrink();
   }
 
   Widget _buildEdgeResizeHandle(BuildContext context, Sizer sizer) {
+    if (!canResize) {
+      return SizedBox.shrink();
+    }
+
     bool hasWidth = sizer == Sizer.left || sizer == Sizer.right;
     bool hasHeight = sizer == Sizer.top || sizer == Sizer.bottom;
 
@@ -74,6 +87,10 @@ class RectTransformHandles extends StatelessWidget {
   }
 
   Widget _buildCornerResizeHandle(BuildContext context, Sizer sizer) {
+    if (!canResize) {
+      return SizedBox.shrink();
+    }
+
     return GestureDetector(
       onPanStart: (details) {
         onResizeStart?.call(sizer);
@@ -100,6 +117,10 @@ class RectTransformHandles extends StatelessWidget {
   }
 
   Widget _buildRotatorHandle() {
+    if (!canRotate) {
+      return SizedBox.shrink();
+    }
+
     return GestureDetector(
       onPanStart: (details) => onRotateStart?.call(details),
       onPanUpdate: (details) => onRotate?.call(details),
