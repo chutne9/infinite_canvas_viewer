@@ -40,7 +40,7 @@ class CanvasLayoutRenderBox extends RenderBox
   }
 
   late Rect _visibleWorldRect;
-  BaseGridPainter? _gridPainter;
+  GridPainter? _gridPainter;
   Matrix4 get _transform => _controller.transform;
 
   CanvasController _controller;
@@ -167,7 +167,7 @@ class CanvasLayoutRenderBox extends RenderBox
     super.detach();
   }
 
-  BaseGridPainter? createGridPainter(Matrix4 transform, Rect rect) {
+  GridPainter? createGridPainter(Matrix4 transform, Rect rect) {
     switch (_gridType) {
       case GridType.line:
         return LineGridPainter(transform: transform, visibleWorldRect: rect);

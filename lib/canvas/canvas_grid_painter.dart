@@ -14,21 +14,21 @@ enum GridType {
   dot,
 }
 
-abstract class BaseGridPainter extends CustomPainter {
+abstract class GridPainter extends CustomPainter {
   final Matrix4 transform;
   final Rect visibleWorldRect;
 
-  BaseGridPainter({required this.transform, required this.visibleWorldRect});
+  GridPainter({required this.transform, required this.visibleWorldRect});
 
   @override
-  bool shouldRepaint(covariant BaseGridPainter oldDelegate) {
+  bool shouldRepaint(covariant GridPainter oldDelegate) {
     // Repaint if the view transform or visible area changes.
     return oldDelegate.transform != transform ||
         oldDelegate.visibleWorldRect != visibleWorldRect;
   }
 }
 
-class LineGridPainter extends BaseGridPainter {
+class LineGridPainter extends GridPainter {
   final Paint _minorGridPaint = Paint()
     ..color = Colors.grey.withAlpha(77)
     ..strokeWidth = 0.5;
@@ -107,7 +107,7 @@ class LineGridPainter extends BaseGridPainter {
   }
 }
 
-class DotGridPainter extends BaseGridPainter {
+class DotGridPainter extends GridPainter {
   final Paint _minorDotPaint = Paint()
     ..color = Colors.grey.withAlpha(77)
     ..strokeWidth = 1.5
