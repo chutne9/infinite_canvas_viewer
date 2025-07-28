@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-import 'dart:ui';
 import 'package:infinite_canvas_viewer/canvas/canvas_controller.dart';
+import 'package:infinite_canvas_viewer/canvas/canvas_grid_painter.dart';
 import 'package:infinite_canvas_viewer/canvas/canvas_item.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -37,14 +36,7 @@ class CanvasLayoutRenderBox extends RenderBox
   Matrix4 get _transform => _controller.transform;
 
   late Rect _visibleWorldRect;
-
-  final Paint _minorGridPaint = Paint()
-    ..color = Colors.grey.withValues(alpha: 0.3)
-    ..strokeWidth = 0.5;
-
-  final Paint _majorGridPaint = Paint()
-    ..color = Colors.grey.withValues(alpha: 0.5)
-    ..strokeWidth = 1.0;
+  late GridPainter _gridPainter;
 
   set controller(CanvasController newController) {
     if (_controller == newController) return;
@@ -69,6 +61,11 @@ class CanvasLayoutRenderBox extends RenderBox
     _visibleWorldRect = MatrixUtils.transformRect(
       inverseMatrix,
       Offset.zero & size,
+    );
+
+    _gridPainter = GridPainter(
+      transform: _transform,
+      visibleWorldRect: _visibleWorldRect,
     );
 
     RenderBox? child = firstChild;
@@ -107,12 +104,14 @@ class CanvasLayoutRenderBox extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    final backgroundPaint = Paint()..color = const Color(0xFF212121);
+    final backgroundPaint = Paint()..color = const Color(0xFFFDFDFD);
     context.canvas.drawRect(offset & size, backgroundPaint);
 
     context.canvas.save();
     context.canvas.clipRect(offset & size);
-    _paintGrid(context, offset);
+
+    _gridPainter.paint(context.canvas, size);
+
     context.canvas.restore();
 
     RenderBox? child = firstChild;
@@ -158,97 +157,5 @@ class CanvasLayoutRenderBox extends RenderBox
   void detach() {
     _controller.removeListener(markNeedsLayout);
     super.detach();
-  }
-
-  void _paintGrid(PaintingContext context, Offset offset) {
-    final canvas = context.canvas;
-    final scale = _transform.getMaxScaleOnAxis();
-    final visibleRect = _visibleWorldRect;
-
-    const double majorGridStep = 200.0;
-    const double minorGridStep = 50.0;
-
-    canvas.save();
-    canvas.translate(offset.dx, offset.dy);
-    canvas.transform(_transform.storage);
-
-    // Major grid lines
-    final double startXMajor =
-        (visibleRect.left / majorGridStep).floorToDouble() * majorGridStep;
-    final double startYMajor =
-        (visibleRect.top / majorGridStep).floorToDouble() * majorGridStep;
-
-    int majorLineCount = 0;
-    for (double x = startXMajor; x < visibleRect.right; x += majorGridStep) {
-      majorLineCount++;
-    }
-    for (double y = startYMajor; y < visibleRect.bottom; y += majorGridStep) {
-      majorLineCount++;
-    }
-
-    if (majorLineCount > 0) {
-      final majorPoints = Float32List(majorLineCount * 4);
-      int index = 0;
-      for (double x = startXMajor; x < visibleRect.right; x += majorGridStep) {
-        majorPoints[index++] = x;
-        majorPoints[index++] = visibleRect.top;
-        majorPoints[index++] = x;
-        majorPoints[index++] = visibleRect.bottom;
-      }
-      for (double y = startYMajor; y < visibleRect.bottom; y += majorGridStep) {
-        majorPoints[index++] = visibleRect.left;
-        majorPoints[index++] = y;
-        majorPoints[index++] = visibleRect.right;
-        majorPoints[index++] = y;
-      }
-      canvas.drawRawPoints(PointMode.lines, majorPoints, _majorGridPaint);
-    }
-
-    // Minor grid lines
-    final double minorStepOnScreen = minorGridStep * scale;
-    if (minorStepOnScreen > 5.0) {
-      final double startXMinor =
-          (visibleRect.left / minorGridStep).floorToDouble() * minorGridStep;
-      final double startYMinor =
-          (visibleRect.top / minorGridStep).floorToDouble() * minorGridStep;
-
-      int minorLineCount = 0;
-      for (double x = startXMinor; x < visibleRect.right; x += minorGridStep) {
-        if ((x % majorGridStep).abs() > 0.01) minorLineCount++;
-      }
-      for (double y = startYMinor; y < visibleRect.bottom; y += minorGridStep) {
-        if ((y % majorGridStep).abs() > 0.01) minorLineCount++;
-      }
-
-      if (minorLineCount > 0) {
-        final minorPoints = Float32List(minorLineCount * 4);
-        int index = 0;
-        for (
-          double x = startXMinor;
-          x < visibleRect.right;
-          x += minorGridStep
-        ) {
-          if ((x % majorGridStep).abs() < 0.01) continue;
-          minorPoints[index++] = x;
-          minorPoints[index++] = visibleRect.top;
-          minorPoints[index++] = x;
-          minorPoints[index++] = visibleRect.bottom;
-        }
-        for (
-          double y = startYMinor;
-          y < visibleRect.bottom;
-          y += minorGridStep
-        ) {
-          if ((y % majorGridStep).abs() < 0.01) continue;
-          minorPoints[index++] = visibleRect.left;
-          minorPoints[index++] = y;
-          minorPoints[index++] = visibleRect.right;
-          minorPoints[index++] = y;
-        }
-        canvas.drawRawPoints(PointMode.lines, minorPoints, _minorGridPaint);
-      }
-    }
-
-    canvas.restore();
   }
 }
