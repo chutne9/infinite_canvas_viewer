@@ -194,46 +194,49 @@ class _RectTransformState extends State<RectTransform> {
         position.dx * widget.worldScale - kPadding,
         position.dy * widget.worldScale - kPadding,
       ),
-      child: TapRegion(
-        onTapInside: (event) => widget.onTapInside?.call(event),
-        onTapOutside: (event) => widget.onTapOutside?.call(event),
-        child: Transform.rotate(
-          angle: angle,
-          child: SizedBox(
-            width: screenWidth,
-            height: screenHeight,
-            child: Stack(
-              clipBehavior: Clip.none,
-              key: stackKey,
-              children: [
-                Positioned(
-                  left: kPadding,
-                  top: kPadding,
-                  right: kPadding,
-                  bottom: kPadding,
-                  child: widget.child,
-                ),
-                Positioned.fill(
-                  child: RectTransformHandles(
-                    canMove: widget.canMove,
-                    canRotate: widget.canRotate,
-                    canResize: widget.canResize,
-                    rotatorSize: widget.rotatorSize,
-                    cornerSizerSize: widget.cornerSizerSize,
-                    strokeHandleSize: widget.strokeHandleSize,
-                    strokeSize: widget.strokeSize,
-                    padding: kPadding,
-                    onMove: _move,
-                    onMoveEnd: _handleMoveEnd,
-                    onResizeStart: _controller.startResize,
-                    onResize: _resize,
-                    onResizeEnd: _handleResizeEnd,
-                    onRotateStart: _onRotateStart,
-                    onRotate: _onRotateUpdate,
-                    onRotateEnd: _handleRotateEnd,
+      child: IgnorePointer(
+        ignoring: !widget.canMove && !widget.canRotate && !widget.canResize,
+        child: TapRegion(
+          onTapInside: (event) => widget.onTapInside?.call(event),
+          onTapOutside: (event) => widget.onTapOutside?.call(event),
+          child: Transform.rotate(
+            angle: angle,
+            child: SizedBox(
+              width: screenWidth,
+              height: screenHeight,
+              child: Stack(
+                clipBehavior: Clip.none,
+                key: stackKey,
+                children: [
+                  Positioned(
+                    left: kPadding,
+                    top: kPadding,
+                    right: kPadding,
+                    bottom: kPadding,
+                    child: widget.child,
                   ),
-                ),
-              ],
+                  Positioned.fill(
+                    child: RectTransformHandles(
+                      canMove: widget.canMove,
+                      canRotate: widget.canRotate,
+                      canResize: widget.canResize,
+                      rotatorSize: widget.rotatorSize,
+                      cornerSizerSize: widget.cornerSizerSize,
+                      strokeHandleSize: widget.strokeHandleSize,
+                      strokeSize: widget.strokeSize,
+                      padding: kPadding,
+                      onMove: _move,
+                      onMoveEnd: _handleMoveEnd,
+                      onResizeStart: _controller.startResize,
+                      onResize: _resize,
+                      onResizeEnd: _handleResizeEnd,
+                      onRotateStart: _onRotateStart,
+                      onRotate: _onRotateUpdate,
+                      onRotateEnd: _handleRotateEnd,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
