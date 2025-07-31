@@ -11,12 +11,16 @@ class InfiniteCanvasViewer extends StatefulWidget {
     required this.children,
     this.gridType = GridType.none,
     this.backgroundColor = const Color(0xFFFDFDFD),
+    this.canZoom = true,
+    this.canPan = true,
   });
 
   final List<Widget> children;
   final CanvasController controller;
   final GridType gridType;
   final Color backgroundColor;
+  final bool canZoom;
+  final bool canPan;
 
   @override
   State<InfiniteCanvasViewer> createState() => _InfiniteCanvasViewerState();
@@ -32,7 +36,7 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer> {
   }
 
   void _handlePointerSignal(PointerSignalEvent event) {
-    if (event is PointerScrollEvent) {
+    if (event is PointerScrollEvent && widget.canZoom) {
       const double zoomSensitivity = 200.0;
       final double scaleDelta = 1.0 - event.scrollDelta.dy / zoomSensitivity;
       final Offset focalPoint = event.localPosition;
@@ -45,14 +49,17 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer> {
   }
 
   void _handleScaleUpdate(ScaleUpdateDetails details) {
-    widget.controller.pan(details.focalPointDelta);
-
-    final double scaleDelta = details.scale / _previousScale;
-    if (scaleDelta != 1.0) {
-      widget.controller.zoom(scaleDelta, details.localFocalPoint);
+    if (widget.canPan) {
+      widget.controller.pan(details.focalPointDelta);
     }
 
-    _previousScale = details.scale;
+    if (widget.canZoom) {
+      final double scaleDelta = details.scale / _previousScale;
+      if (scaleDelta != 1.0) {
+        widget.controller.zoom(scaleDelta, details.localFocalPoint);
+      }
+      _previousScale = details.scale;
+    }
   }
 
   @override
