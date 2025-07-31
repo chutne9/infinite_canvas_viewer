@@ -137,12 +137,7 @@ class LineGridPainter extends GridPainter {
 }
 
 class DotGridPainter extends GridPainter {
-  final Paint _minorDotPaint = Paint()
-    ..color = Colors.grey.withAlpha(77)
-    ..strokeWidth = 1.5
-    ..strokeCap = StrokeCap.round;
-
-  final Paint _majorDotPaint = Paint()
+  final Paint _dotPaint = Paint()
     ..color = Colors.grey.withAlpha(128)
     ..strokeWidth = 2.5
     ..strokeCap = StrokeCap.round;
@@ -152,54 +147,45 @@ class DotGridPainter extends GridPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final scale = transform.getMaxScaleOnAxis();
-    const double majorGridStep = 30.0;
-    const double minorGridStep = 30.0;
+    const double dotStep = 30.0;
 
     canvas.save();
     canvas.transform(transform.storage);
 
-    _drawGridDots(canvas, visibleWorldRect, majorGridStep, _majorDotPaint);
+    final visibleRect = visibleWorldRect;
 
-    final double minorStepOnScreen = minorGridStep * scale;
-    if (minorStepOnScreen > 8.0) {
-      _drawGridDots(
-        canvas,
-        visibleWorldRect,
-        minorGridStep,
-        _minorDotPaint,
-        skipEvery: (majorGridStep / minorGridStep).round(),
-      );
+    final double dotStepOnScreen = dotStep * scale;
+    if (dotStepOnScreen > 5.0) {
+      _drawGridDots(canvas, visibleRect, dotStep, _dotPaint);
     }
     canvas.restore();
   }
 
-  void _drawGridDots(
-    Canvas canvas,
-    Rect rect,
-    double step,
-    Paint paint, {
-    int skipEvery = 0,
-  }) {
+  void _drawGridDots(Canvas canvas, Rect rect, double step, Paint paint) {
     final double startX = (rect.left / step).floorToDouble() * step;
     final double startY = (rect.top / step).floorToDouble() * step;
-    final List<double> points = [];
 
-    for (int i = 0; startX + i * step < rect.right; i++) {
-      if (skipEvery > 0 && i % skipEvery == 0) continue;
-      final double x = startX + i * step;
-      for (int j = 0; startY + j * step < rect.bottom; j++) {
-        if (skipEvery > 0 && j % skipEvery == 0) continue;
-        final double y = startY + j * step;
-        points.addAll([x, y]);
+    int pointCount = 0;
+    for (double x = startX; x < rect.right; x += step) {
+      for (double y = startY; y < rect.bottom; y += step) {
+        pointCount++;
       }
     }
 
-    if (points.isNotEmpty) {
-      canvas.drawRawPoints(
-        PointMode.points,
-        Float32List.fromList(points),
-        paint,
-      );
+    if (pointCount == 0) {
+      return;
     }
+
+    final Float32List points = Float32List(pointCount * 2);
+    int index = 0;
+
+    for (double x = startX; x < rect.right; x += step) {
+      for (double y = startY; y < rect.bottom; y += step) {
+        points[index++] = x;
+        points[index++] = y;
+      }
+    }
+
+    canvas.drawRawPoints(PointMode.points, points, paint);
   }
 }
