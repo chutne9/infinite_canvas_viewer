@@ -7,17 +7,23 @@ import 'package:flutter/rendering.dart';
 class CanvasLayoutWidget extends MultiChildRenderObjectWidget {
   final CanvasController controller;
   final GridType gridType;
+  final CustomPainter? foregroundPainter;
 
   const CanvasLayoutWidget({
     super.key,
     required this.controller,
     required super.children,
     this.gridType = GridType.none,
+    this.foregroundPainter,
   });
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      CanvasLayoutRenderBox(controller: controller, gridType: gridType);
+      CanvasLayoutRenderBox(
+        controller: controller,
+        gridType: gridType,
+        foregroundPainter: foregroundPainter,
+      );
 
   @override
   void updateRenderObject(
@@ -26,6 +32,7 @@ class CanvasLayoutWidget extends MultiChildRenderObjectWidget {
   ) {
     renderObject.controller = controller;
     renderObject.gridType = gridType;
+    renderObject.foregroundPainter = foregroundPainter;
   }
 }
 
@@ -34,8 +41,10 @@ class CanvasLayoutRenderBox extends RenderBox
   CanvasLayoutRenderBox({
     required CanvasController controller,
     required GridType gridType,
+    required CustomPainter? foregroundPainter,
   }) : _controller = controller,
-       _gridType = gridType {
+       _gridType = gridType,
+       _foregroundPainter = foregroundPainter {
     _controller.addListener(markNeedsLayout);
   }
 
@@ -57,6 +66,15 @@ class CanvasLayoutRenderBox extends RenderBox
     if (_gridType == gridType) return;
     _gridType = gridType;
     markNeedsLayout();
+  }
+
+  CustomPainter? _foregroundPainter;
+  set foregroundPainter(CustomPainter? painter) {
+    if (_foregroundPainter == painter) return;
+    _foregroundPainter?.removeListener(markNeedsPaint);
+    _foregroundPainter = painter;
+    _foregroundPainter?.addListener(markNeedsPaint);
+    markNeedsPaint();
   }
 
   @override
@@ -135,6 +153,13 @@ class CanvasLayoutRenderBox extends RenderBox
       }
       child = childParentData.nextSibling;
     }
+
+    if (_foregroundPainter case final foregroundPainter?) {
+      context.canvas.save();
+      context.canvas.translate(offset.dx, offset.dy);
+      foregroundPainter.paint(context.canvas, size);
+      context.canvas.restore();
+    }
   }
 
   @override
@@ -161,6 +186,7 @@ class CanvasLayoutRenderBox extends RenderBox
   @override
   void detach() {
     _controller.removeListener(markNeedsLayout);
+    _foregroundPainter?.removeListener(markNeedsPaint);
     super.detach();
   }
 

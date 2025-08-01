@@ -13,6 +13,7 @@ class InfiniteCanvasViewer extends StatefulWidget {
     this.backgroundColor = const Color(0xFFFDFDFD),
     this.canZoom = true,
     this.canPan = true,
+    this.foregroundPainter,
   });
 
   final List<Widget> children;
@@ -21,6 +22,7 @@ class InfiniteCanvasViewer extends StatefulWidget {
   final Color backgroundColor;
   final bool canZoom;
   final bool canPan;
+  final CustomPainter? foregroundPainter;
 
   @override
   State<InfiniteCanvasViewer> createState() => _InfiniteCanvasViewerState();
@@ -76,6 +78,7 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer> {
             child: CanvasLayoutWidget(
               controller: widget.controller,
               gridType: widget.gridType,
+              foregroundPainter: widget.foregroundPainter,
               children: widget.children,
             ),
           ),
