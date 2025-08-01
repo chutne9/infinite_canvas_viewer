@@ -1,6 +1,6 @@
 name: infinite_canvas_viewer
 description: "A Flutter widget for creating an infinite, zoomable, and pannable canvas."
-version: 0.0.6
+version: 0.0.7
 homepage: "https://github.com/chutne9/infinite_canvas_viewer"
 
 environment:
