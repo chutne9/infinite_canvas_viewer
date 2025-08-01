@@ -17,6 +17,7 @@ class RectTransform extends StatefulWidget {
     this.strokeHandleSize = 4,
     this.cornerSizerSize = 8,
     this.rotatorSize = 16,
+    this.handleColor = Colors.blue,
     this.canMove = true,
     this.canRotate = true,
     this.canResize = true,
@@ -57,6 +58,7 @@ class RectTransform extends StatefulWidget {
   final double strokeHandleSize;
   final double cornerSizerSize;
   final double rotatorSize;
+  final Color handleColor;
   final bool canMove;
   final bool canRotate;
   final bool canResize;
@@ -224,6 +226,7 @@ class _RectTransformState extends State<RectTransform> {
                       strokeHandleSize: widget.strokeHandleSize,
                       strokeSize: widget.strokeSize,
                       padding: kPadding,
+                      color: widget.handleColor,
                       onMove: _move,
                       onMoveEnd: _handleMoveEnd,
                       onResizeStart: _controller.startResize,

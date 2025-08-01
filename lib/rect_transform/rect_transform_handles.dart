@@ -12,6 +12,7 @@ class RectTransformHandles extends StatelessWidget {
     required this.strokeHandleSize,
     required this.strokeSize,
     required this.padding,
+    required this.color,
     this.onMove,
     this.onMoveEnd,
     this.onResizeStart,
@@ -30,6 +31,7 @@ class RectTransformHandles extends StatelessWidget {
   final double strokeHandleSize;
   final double strokeSize;
   final double padding;
+  final Color color;
   final Function(Offset)? onMove;
   final VoidCallback? onMoveEnd;
   final Function(Sizer)? onResizeStart;
@@ -79,7 +81,7 @@ class RectTransformHandles extends StatelessWidget {
           child: Container(
             width: hasWidth ? strokeSize : null,
             height: hasHeight ? strokeSize : null,
-            color: Colors.purple,
+            color: Colors.transparent,
           ),
         ),
       ),
@@ -107,10 +109,7 @@ class RectTransformHandles extends StatelessWidget {
           alignment: Alignment.center,
           width: cornerSizerSize,
           height: cornerSizerSize,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.purple,
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
         ),
       ),
     );
