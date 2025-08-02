@@ -59,7 +59,7 @@ class CanvasController extends ChangeNotifier {
 
   void animateTo(
     Matrix4 target, {
-    Duration duration = const Duration(milliseconds: 250),
+    Duration duration = const Duration(milliseconds: 350),
     Curve curve = Curves.easeInOut,
   }) {
     if (vsync case final vsync?) {
