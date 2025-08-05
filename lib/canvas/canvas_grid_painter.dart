@@ -29,12 +29,12 @@ abstract class GridPainter extends CustomPainter {
 
 class LineGridPainter extends GridPainter {
   final Paint _minorGridPaint = Paint()
-    ..color = Colors.grey.withAlpha(77)
-    ..strokeWidth = 0.5;
+    ..color = Color(0xFF303030)
+    ..strokeWidth = 1;
 
   final Paint _majorGridPaint = Paint()
-    ..color = Colors.grey.withAlpha(128)
-    ..strokeWidth = 1.0;
+    ..color = Color(0xFF222222)
+    ..strokeWidth = 2.0;
 
   LineGridPainter({required super.transform, required super.visibleWorldRect});
 
