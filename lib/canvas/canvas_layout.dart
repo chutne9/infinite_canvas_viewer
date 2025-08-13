@@ -176,7 +176,9 @@ class CanvasLayoutRenderBox extends RenderBox
             return child!.hitTest(result, position: transformed);
           },
         );
-        if (isHit) return true;
+        if (isHit) {
+          return true;
+        }
       }
       child = childParentData.previousSibling;
     }

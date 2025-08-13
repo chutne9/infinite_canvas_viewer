@@ -16,6 +16,9 @@ class InfiniteCanvasViewer extends StatefulWidget {
     this.canZoom = true,
     this.canPan = true,
     this.foregroundPainter,
+    this.onTapOutside,
+    this.onDoubleTap,
+    this.onLongPress,
   });
 
   final List<Widget> children;
@@ -25,6 +28,9 @@ class InfiniteCanvasViewer extends StatefulWidget {
   final bool canZoom;
   final bool canPan;
   final CustomPainter? foregroundPainter;
+  final VoidCallback? onTapOutside;
+  final VoidCallback? onDoubleTap;
+  final VoidCallback? onLongPress;
 
   @override
   State<InfiniteCanvasViewer> createState() => _InfiniteCanvasViewerState();
@@ -37,6 +43,8 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer>
   bool _isSpacePressed = false;
   bool _isLeftMouseDragging = false;
   bool _isMiddleMousePanning = false;
+  bool _isTouchDevice = false;
+  double _previousScale = 1.0;
 
   Matrix4 _gestureStartMat = Matrix4.identity();
   Offset _gestureStartPosition = Offset.zero;
@@ -164,10 +172,12 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer>
           cursor: _cursor,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onPanStart: (details) {
+            onScaleStart: (details) {
               if (_isMiddleMousePanning) return;
               if (!_isSpacePressed &&
-                  details.kind != PointerDeviceKind.trackpad) {
+                  details.pointerCount == 1 &&
+                  details.kind != PointerDeviceKind.trackpad &&
+                  details.kind != PointerDeviceKind.touch) {
                 return;
               }
               if (!_focusNode.hasFocus) {
@@ -176,82 +186,112 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer>
               widget.controller.stopAnimation();
               setState(() {
                 _isLeftMouseDragging = true;
+                _isTouchDevice = details.kind == PointerDeviceKind.touch;
+                _previousScale = 1.0;
                 _gestureStartMat = widget.controller.transform.clone();
-                _gestureStartPosition = details.globalPosition;
-                _gestureStartLocalPosition = details.localPosition;
+                _gestureStartPosition = details.localFocalPoint;
+                _gestureStartLocalPosition = details.localFocalPoint;
               });
             },
-            onPanUpdate: (details) {
+            onScaleUpdate: (details) {
               if (!_isLeftMouseDragging) return;
 
-              if (_isSpacePressed) {
-                if (!widget.canPan) return;
-                final Offset delta =
-                    details.globalPosition - _gestureStartPosition;
-                final panMatrix = Matrix4.identity()
-                  ..translate(delta.dx, delta.dy);
-                widget.controller.transform = panMatrix * _gestureStartMat;
-              } else {
-                if (!widget.canZoom) return;
-                final double dy =
-                    details.globalPosition.dy - _gestureStartPosition.dy;
-                double scaleFactor = 1 + dy * _dragZoomSensitivity;
-                scaleFactor = max(0.01, scaleFactor);
-
-                final double startScale = _gestureStartMat.getMaxScaleOnAxis();
-                final double targetScale = startScale * scaleFactor;
-
-                if (targetScale < CanvasController.minScale) {
-                  scaleFactor = CanvasController.minScale / startScale;
-                } else if (targetScale > CanvasController.maxScale) {
-                  scaleFactor = CanvasController.maxScale / startScale;
+              // Handle panning (single finger or space + mouse)
+              if (widget.canPan) {
+                // For touch devices, always pan with single finger
+                // For desktop, only pan when space is pressed
+                final bool shouldPan = _isSpacePressed || _isTouchDevice;
+                if (shouldPan && details.pointerCount == 1) {
+                  widget.controller.pan(details.focalPointDelta);
                 }
+              }
 
-                final zoomMat = Matrix4.identity()
-                  ..translate(
-                    _gestureStartLocalPosition.dx,
-                    _gestureStartLocalPosition.dy,
-                  )
-                  ..scale(scaleFactor)
-                  ..translate(
-                    -_gestureStartLocalPosition.dx,
-                    -_gestureStartLocalPosition.dy,
-                  );
-                widget.controller.transform = zoomMat * _gestureStartMat;
+              // Handle zooming (pinch-to-zoom on mobile, scroll on desktop)
+              if (widget.canZoom) {
+                // Pinch-to-zoom for multi-touch on mobile devices
+                if (details.pointerCount >= 2 && _isTouchDevice) {
+                  final double scaleDelta = details.scale / _previousScale;
+                  if (scaleDelta != 1.0) {
+                    widget.controller.zoom(scaleDelta, details.localFocalPoint);
+                  }
+                  _previousScale = details.scale;
+                }
+                // Desktop zoom with mouse drag (when not pressing space)
+                else if (details.pointerCount == 1 &&
+                    !_isTouchDevice &&
+                    !_isSpacePressed) {
+                  final double dy = details.focalPointDelta.dy;
+                  double scaleFactor = 1 + dy * _dragZoomSensitivity;
+                  scaleFactor = max(0.01, scaleFactor);
+
+                  final double startScale = _gestureStartMat
+                      .getMaxScaleOnAxis();
+                  final double targetScale = startScale * scaleFactor;
+
+                  if (targetScale < CanvasController.minScale) {
+                    scaleFactor = CanvasController.minScale / startScale;
+                  } else if (targetScale > CanvasController.maxScale) {
+                    scaleFactor = CanvasController.maxScale / startScale;
+                  }
+
+                  final zoomMat = Matrix4.identity()
+                    ..translate(
+                      _gestureStartLocalPosition.dx,
+                      _gestureStartLocalPosition.dy,
+                    )
+                    ..scale(scaleFactor)
+                    ..translate(
+                      -_gestureStartLocalPosition.dx,
+                      -_gestureStartLocalPosition.dy,
+                    );
+                  widget.controller.transform = zoomMat * _gestureStartMat;
+                }
               }
             },
-            onPanEnd: (details) {
+            onScaleEnd: (details) {
               if (!_isLeftMouseDragging) return;
 
-              final bool wasPanning = _isSpacePressed;
+              final bool wasPanning = _isSpacePressed || _isTouchDevice;
               setState(() {
                 _isLeftMouseDragging = false;
+                _previousScale = 1.0;
               });
 
-              final Offset pixelsPerSecond = details.velocity.pixelsPerSecond;
-              const double flingThreshold = 200.0;
-              if (pixelsPerSecond.distance < flingThreshold) return;
+              // Handle fling for zoom on desktop
+              if (!wasPanning && !_isTouchDevice && widget.canZoom) {
+                final Offset pixelsPerSecond = details.velocity.pixelsPerSecond;
+                const double flingThreshold = 200.0;
+                if (pixelsPerSecond.distance < flingThreshold) return;
 
-              if (!wasPanning && widget.canZoom) {
                 widget.controller.flingZoom(
                   pixelsPerSecond.dy,
                   _gestureStartLocalPosition,
                 );
               }
             },
-            onPanCancel: () {
-              if (_isLeftMouseDragging) {
-                setState(() => _isLeftMouseDragging = false);
-              }
-            },
+
             child: Container(
               color: widget.backgroundColor,
               child: ClipRect(
-                child: CanvasLayoutWidget(
-                  controller: widget.controller,
-                  gridType: widget.gridType,
-                  foregroundPainter: widget.foregroundPainter,
-                  children: widget.children,
+                child: Stack(
+                  children: [
+                    // Transparent gesture detector for canvas taps
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: widget.onTapOutside,
+                        onDoubleTap: widget.onDoubleTap,
+                        onLongPress: widget.onLongPress,
+                        child: Container(color: Colors.transparent),
+                      ),
+                    ),
+                    // Canvas content
+                    CanvasLayoutWidget(
+                      controller: widget.controller,
+                      gridType: widget.gridType,
+                      foregroundPainter: widget.foregroundPainter,
+                      children: widget.children,
+                    ),
+                  ],
                 ),
               ),
             ),

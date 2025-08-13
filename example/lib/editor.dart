@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:infinite_canvas_viewer/infinite_canvas_viewer.dart';
 
 class Item extends Equatable {
@@ -58,6 +59,12 @@ class _CanvasState extends State<Editor> {
   Widget build(BuildContext context) {
     return InfiniteCanvasViewer(
       controller: _controller,
+      backgroundColor: Colors.white,
+      gridType: GridType.dot,
+      canPan: true,
+      onTapOutside: () {},
+      onDoubleTap: () {},
+      onLongPress: () {},
       children: items
           .mapIndexed(
             (index, item) => RectTransform(
@@ -65,6 +72,7 @@ class _CanvasState extends State<Editor> {
               angle: item.angle,
               onNewBounds: (bounds, angle) =>
                   _handleNewBounds(index, bounds, angle),
+              onTapInside: () {},
               child: Container(color: item.color),
             ),
           )
