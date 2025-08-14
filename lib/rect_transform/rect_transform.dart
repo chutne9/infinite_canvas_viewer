@@ -25,6 +25,7 @@ class RectTransform extends StatefulWidget {
     this.onNewBounds,
     this.onTransformEnd,
     this.onTapInside,
+    this.onTapOutside,
   }) : assert(
          (bounds != null) ||
              (position != null && scale != null && baseSize != null),
@@ -65,6 +66,7 @@ class RectTransform extends StatefulWidget {
   final Function(Rect, double)? onNewBounds;
   final VoidCallback? onTransformEnd;
   final VoidCallback? onTapInside;
+  final VoidCallback? onTapOutside;
 
   @override
   State<RectTransform> createState() => _RectTransformState();
@@ -194,8 +196,9 @@ class _RectTransformState extends State<RectTransform> {
         position.dx * widget.worldScale - kPadding,
         position.dy * widget.worldScale - kPadding,
       ),
-      child: GestureDetector(
-        onTap: () => widget.onTapInside?.call(),
+      child: TapRegion(
+        onTapInside: (_) => widget.onTapInside?.call(),
+        onTapOutside: (_) => widget.onTapOutside?.call(),
         child: Transform.rotate(
           angle: angle,
           child: SizedBox(
