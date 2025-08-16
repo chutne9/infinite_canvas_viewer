@@ -58,6 +58,12 @@ class _CanvasState extends State<Editor> {
   Widget build(BuildContext context) {
     return InfiniteCanvasViewer(
       controller: _controller,
+      backgroundColor: Colors.white,
+      gridType: GridType.dot,
+      canPan: true,
+      onTapOutside: () {},
+      onDoubleTap: () {},
+      onLongPress: () {},
       children: items
           .mapIndexed(
             (index, item) => RectTransform(
