@@ -64,6 +64,10 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer>
   }
 
   KeyEventResult _handleKeyEvent(KeyEvent event) {
+    if (!widget.canPan) {
+      return KeyEventResult.ignored;
+    }
+
     final bool spacePressedCurrently = HardwareKeyboard.instance
         .isLogicalKeyPressed(LogicalKeyboardKey.space);
 
@@ -72,7 +76,7 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer>
       setState(() {
         _isSpacePressed = spacePressedCurrently;
       });
-      return KeyEventResult.handled;
+      return KeyEventResult.ignored;
     }
 
     return _isSpacePressed ? KeyEventResult.handled : KeyEventResult.ignored;
