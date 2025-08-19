@@ -2,6 +2,8 @@
 
 [![Pub](https://img.shields.io/pub/v/infinite_canvas_viewer.svg)](https://pub.dev/packages/infinite_canvas_viewer)
 
+*This package is still a work in progress. You are encouraged to fork this and making changes to suit your needs*
+
 A Flutter widget for creating an infinite, zoomable, and pannable canvas.
 
 ## Features
