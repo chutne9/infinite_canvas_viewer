@@ -12,7 +12,7 @@ class InfiniteCanvasViewer extends StatefulWidget {
     required this.controller,
     required this.children,
     this.gridType = GridType.none,
-    this.backgroundColor = const Color(0xFF1a1b26),
+    this.backgroundColor,
     this.canZoom = true,
     this.canPan = true,
     this.foregroundPainter,
@@ -21,7 +21,7 @@ class InfiniteCanvasViewer extends StatefulWidget {
   final List<Widget> children;
   final CanvasController controller;
   final GridType gridType;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final bool canZoom;
   final bool canPan;
   final CustomPainter? foregroundPainter;
