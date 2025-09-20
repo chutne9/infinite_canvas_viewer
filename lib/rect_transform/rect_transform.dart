@@ -65,8 +65,8 @@ class RectTransform extends StatefulWidget {
   final Function(Offset, double, Offset)? onNewTransform;
   final Function(Rect, double)? onNewBounds;
   final VoidCallback? onTransformEnd;
-  final Function(PointerDownEvent)? onTapInside;
-  final Function(PointerDownEvent)? onTapOutside;
+  final VoidCallback? onTapInside;
+  final VoidCallback? onTapOutside;
 
   @override
   State<RectTransform> createState() => _RectTransformState();
@@ -197,8 +197,8 @@ class _RectTransformState extends State<RectTransform> {
         position.dy * widget.worldScale - kPadding,
       ),
       child: TapRegion(
-        onTapInside: (event) => widget.onTapInside?.call(event),
-        onTapOutside: (event) => widget.onTapOutside?.call(event),
+        onTapInside: (_) => widget.onTapInside?.call(),
+        onTapOutside: (_) => widget.onTapOutside?.call(),
         child: Transform.rotate(
           angle: angle,
           child: SizedBox(
