@@ -76,7 +76,6 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer>
       setState(() {
         _isSpacePressed = spacePressedCurrently;
       });
-      return KeyEventResult.ignored;
     }
 
     return _isSpacePressed ? KeyEventResult.handled : KeyEventResult.ignored;
