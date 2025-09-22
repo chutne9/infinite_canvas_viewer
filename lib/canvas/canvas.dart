@@ -251,11 +251,14 @@ class _InfiniteCanvasViewerState extends State<InfiniteCanvasViewer>
             child: Container(
               color: widget.backgroundColor,
               child: ClipRect(
-                child: CanvasLayoutWidget(
+                child: CanvasControllerProvider(
                   controller: widget.controller,
-                  gridType: widget.gridType,
-                  foregroundPainter: widget.foregroundPainter,
-                  children: widget.children,
+                  child: CanvasLayoutWidget(
+                    controller: widget.controller,
+                    gridType: widget.gridType,
+                    foregroundPainter: widget.foregroundPainter,
+                    children: widget.children,
+                  ),
                 ),
               ),
             ),

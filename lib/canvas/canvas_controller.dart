@@ -128,3 +128,18 @@ class CanvasController extends ChangeNotifier {
     }
   }
 }
+
+class CanvasControllerProvider extends InheritedNotifier<CanvasController> {
+  const CanvasControllerProvider({
+    super.key,
+    required CanvasController controller,
+    required super.child,
+  }) : super(notifier: controller);
+
+  static CanvasController of(BuildContext context) {
+    final provider = context
+        .dependOnInheritedWidgetOfExactType<CanvasControllerProvider>();
+    assert(provider != null, 'No CanvasControllerProvider found in context');
+    return provider!.notifier!;
+  }
+}

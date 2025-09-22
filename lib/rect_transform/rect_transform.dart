@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:infinite_canvas_viewer/canvas/canvas_controller.dart';
 import 'package:infinite_canvas_viewer/canvas/canvas_item.dart';
 import 'package:infinite_canvas_viewer/rect_transform/rect_transform_controller.dart';
 import 'package:infinite_canvas_viewer/rect_transform/rect_transform_handles.dart';
@@ -187,10 +188,10 @@ class _RectTransformState extends State<RectTransform> {
     final angle = _controller.angle;
     final width = _controller.size.width;
     final height = _controller.size.height;
-
     final screenWidth = width * widget.worldScale + kPadding * 2;
     final screenHeight = height * widget.worldScale + kPadding * 2;
-
+    final canvasController = CanvasControllerProvider.of(context);
+    final canvasScale = canvasController.transform.getMaxScaleOnAxis();
     return CanvasItem(
       position: Offset(
         position.dx * widget.worldScale - kPadding,
@@ -221,10 +222,10 @@ class _RectTransformState extends State<RectTransform> {
                       canMove: widget.canMove,
                       canRotate: widget.canRotate,
                       canResize: widget.canResize,
-                      rotatorSize: widget.rotatorSize,
-                      cornerSizerSize: widget.cornerSizerSize,
-                      strokeHandleSize: widget.strokeHandleSize,
-                      strokeSize: widget.strokeSize,
+                      rotatorSize: widget.rotatorSize / canvasScale,
+                      cornerSizerSize: widget.cornerSizerSize / canvasScale,
+                      strokeHandleSize: widget.strokeHandleSize / canvasScale,
+                      strokeSize: widget.strokeSize / canvasScale,
                       padding: kPadding,
                       color: widget.handleColor,
                       onMove: _move,
